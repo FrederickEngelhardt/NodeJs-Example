@@ -21,8 +21,7 @@ var wsClient = require('websocket').client;
 var fs = require('fs');
 var streamBuffers = require('stream-buffers');
 
-var azureDataMarketClientId = '[Azure Data Market client id]';
-var azureDataMarketClientSecret = '[Azure Data Market client secret]';
+var azureClientSecret = '[Speech Translation API Subscription Key]';
 var speechTranslateUrl = 'wss://dev.microsofttranslator.com/speech/translate?api-version=1.0&from=en&to=fr';
 
 // input wav file is in PCM 16bit, 16kHz, mono with proper WAV header
@@ -92,24 +91,21 @@ function (error, response, body) {
 
 // speech translalate api
 
-// get Azure Data Market Access Token
+// get Azure Cognitive Services Access Token for Translator APIs
 request.post(
-	'https://datamarket.accesscontrol.windows.net/v2/OAuth2-13',
 	{
-		form : {
-			grant_type : 'client_credentials',
-			client_id : azureDataMarketClientId,
-			client_secret : azureDataMarketClientSecret,
-			scope : 'http://api.microsofttranslator.com'
-		}
-	},
-	
+		url: 'https://api.cognitive.microsoft.com/sts/v1.0/issueToken',
+		headers: {
+			'Ocp-Apim-Subscription-Key': azureClientSecret
+		},
+		method: 'POST'
+	},	
 	// once we get the access token, we hook up the necessary websocket events for sending audio and processing the response
 	function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 			
-			// parse and get the acces token
-			var accessToken = JSON.parse(body).access_token;
+			// get the acces token
+			var accessToken = body;
 			
 			// connect to the speech translate api
 			var ws = new wsClient();
